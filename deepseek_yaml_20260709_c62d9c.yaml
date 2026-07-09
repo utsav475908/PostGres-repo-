@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]   # triggers when you push/merge to main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest   # GitHub's runner (Ubuntu)
+
+    steps:
+    # 1. Checkout the code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2. Set up Node.js (if you use Node)
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    # 3. Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # 4. Run tests (if you have tests)
+    - name: Run tests
+      run: npm test
+
+    # 5. Build the application (if needed)
+    - name: Build
+      run: npm run build   # or your build command
+
+    # 6. Deploy to EC2 via SSH
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        port: 22
+        script: |
+          cd /path/to/your/app
+          git pull origin main
+          npm install
+          pm2 restart your-app   # if using PM2; or restart your service
